@@ -25,7 +25,9 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def batchify_iter(it: Iterable[T], batch_size: int) -> Iterable[list[T]]:
+def batchify_iter(
+    it: Iterable[T], batch_size: int
+) -> Iterable[list[T]]:  # ta aqui o problema!!!!!!!!!!!!!!!!!!
     """
     Iterate through sublists of size `batch_size` with a generator.
 
@@ -104,14 +106,12 @@ class BackupAndRestoreClient:
             total = 0
             for document_batch in read_jsonl(path):
                 print(f"Read {len(document_batch)} documents.")
-                for doc in document_batch:
-                    doc["kb_name"] = "sf_help"
-                # print(document_batch[0])
-                # exit()
+
                 result = collection.insert_many(document_batch)
                 total += len(result.inserted_ids)
                 print(f"Restored {total} documents so far.")
                 del result
+
         else:
             print(f" Will Restore documents from '{path}'.")
 
