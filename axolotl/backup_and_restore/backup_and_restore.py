@@ -6,7 +6,7 @@ import typer
 from rich import print
 from typer import Option
 
-from .client import PluginClient
+from axolotl import BackupAndRestoreClient
 from ..utils import ppjson
 
 app = typer.Typer()
