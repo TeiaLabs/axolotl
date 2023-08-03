@@ -46,8 +46,10 @@ def batchify_iter(
         yield batch
 
 
-def save_jsonl(objs: Iterable, path):
-    with open(path, "a") as f:
+def save_jsonl(objs: Iterable, path: Path, collection_name: str):
+    # path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
+    with open(f"{path}/{collection_name}.jsonl", "a") as f:
         f.write("\n".join(json.dumps(o, cls=CustomJSONEncoder) for o in objs))
         f.write("\n")
 
@@ -67,9 +69,10 @@ class BackupAndRestoreClient:
         self,
         db: str,
         collection: str,
-        path: Path,
+        path: str,
         dry_run: Optional[bool] = True,
     ):
+        path = Path(path)
         collection = self.client[db][collection]
         filter = {}
         num_docs = collection.count_documents(filter=filter)
@@ -80,7 +83,7 @@ class BackupAndRestoreClient:
             total = 0
             for i in range(0, num_docs, BATCH_SIZE):
                 documents = collection.find(filter=filter, skip=i, limit=BATCH_SIZE)
-                save_jsonl(documents, path)
+                save_jsonl(documents, path, collection_name=collection.name)
                 total += BATCH_SIZE
                 if total > num_docs:
                     total = num_docs
@@ -95,9 +98,10 @@ class BackupAndRestoreClient:
         self,
         db: str,
         collection: str,
-        path: Path,
+        path: str,
         dry_run: Optional[bool] = True,
     ):
+        path = Path(path)
         collection = self.client[db][collection]
         print(
             f"Restoring in mini-batches of {BATCH_SIZE} documents. This may take a while."
