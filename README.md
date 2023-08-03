@@ -1,5 +1,5 @@
-# Axolotl
-<img src="resources/images/ax.jpeg" align="center" width="200">
+# Axolotl 🐟
+
 
 # db utils
 ```bash
