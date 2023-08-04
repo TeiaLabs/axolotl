@@ -70,7 +70,7 @@ class BackupAndRestoreClient:
         db: str,
         collection: str,
         path: str,
-        dry_run: Optional[bool] = False,
+        dry_run: bool = False,
     ):
         path = Path(path)
         collection = self.client[db][collection]
@@ -99,7 +99,7 @@ class BackupAndRestoreClient:
         db: str,
         collection: str,
         path: str,
-        dry_run: Optional[bool] = True,
+        dry_run: bool = False,
     ):
         path = Path(path)
         collection = self.client[db][collection]
@@ -120,7 +120,10 @@ class BackupAndRestoreClient:
             print(f" Will Restore documents from '{path}'.")
 
     def backup_db(self, db: str, path: str, dry_run: Optional[bool] = True):
-        pass
+        if not dry_run:
+            print(f"Backing up database '{db}' to '{path}'.")
+        else:
+            print(f"Back up database '{db}' to '{path}'.")
 
     def restore_db(self):
         pass
