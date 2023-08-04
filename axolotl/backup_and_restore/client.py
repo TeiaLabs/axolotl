@@ -26,8 +26,10 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 
 def batchify_iter(
-    it: Iterable[T], batch_size: int
-) -> Iterable[list[T]]:  # ta aqui o problema!!!!!!!!!!!!!!!!!!
+    it: Iterable[T],
+    batch_size: int,
+    limit: Optional[int] = -1,
+) -> Iterable[list[T]]:
     """
     Iterate through sublists of size `batch_size` with a generator.
 
@@ -36,29 +38,45 @@ def batchify_iter(
     >>> list(batchify_iter(range(1, 8), 2))
     [[1, 2], [3, 4], [5, 6], [7]]
     """
+    remaining = limit
     batch = []
     for item in it:
         batch.append(item)
+        if remaining != -1:
+            remaining -= 1
         if len(batch) == batch_size:
             yield batch
             batch = []
+        if remaining == 0:
+            break
+
     if batch:
         yield batch
 
 
+def read_jsonl(
+    path: Path,
+    offset: int = 0,
+    limit: int = -1,
+) -> Iterable[list[dict]]:
+    with path.open("r") as f:
+        for _ in range(offset):
+            try:
+                next(f)
+            except StopIteration:
+                print("Offset is greater than the number of lines in the file.")
+                break
+
+        for batch in batchify_iter(f, BATCH_SIZE, limit=limit):
+            batch = [line.rstrip("\n") for line in batch]
+            yield list(map(json.loads, batch))
+
+
 def save_jsonl(objs: Iterable, path: Path, collection_name: str):
-    # path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
     with open(f"{path}/{collection_name}.jsonl", "a") as f:
         f.write("\n".join(json.dumps(o, cls=CustomJSONEncoder) for o in objs))
         f.write("\n")
-
-
-def read_jsonl(path: Path) -> Iterable[list[dict]]:
-    with path.open("r") as f:
-        for batch in batchify_iter(f, BATCH_SIZE):
-            batch = [line.rstrip("\n") for line in batch]
-            yield list(map(json.loads, batch))
 
 
 class BackupAndRestoreClient:
@@ -100,6 +118,8 @@ class BackupAndRestoreClient:
         collection: str,
         path: str,
         dry_run: bool = False,
+        offset: int = 0,
+        limit: int = -1,
     ):
         path = Path(path)
         collection = self.client[db][collection]
@@ -108,7 +128,7 @@ class BackupAndRestoreClient:
         )
         if not dry_run:
             total = 0
-            for document_batch in read_jsonl(path):
+            for document_batch in read_jsonl(path, offset=offset, limit=limit):
                 print(f"Read {len(document_batch)} documents.")
 
                 result = collection.insert_many(document_batch)
@@ -119,7 +139,7 @@ class BackupAndRestoreClient:
         else:
             print(f" Will Restore documents from '{path}'.")
 
-    def backup_db(self, db: str, path: str, dry_run: Optional[bool] = True):
+    def backup_db(self, db: str, path: str, dry_run: bool = False):
         if not dry_run:
             print(f"Backing up database '{db}' to '{path}'.")
         else:
