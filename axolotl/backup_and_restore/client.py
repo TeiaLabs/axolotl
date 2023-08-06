@@ -2,12 +2,11 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, TypeVar, Optional
+from typing import Iterable, Optional, TypeVar
 
 import dotenv
 from bson.objectid import ObjectId
 from pymongo import MongoClient
-
 
 dotenv.load_dotenv()
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 512))
@@ -89,18 +88,30 @@ class BackupAndRestoreClient:
         collection: str,
         path: str,
         dry_run: bool = False,
+        offset: int = 0,
     ):
+        if offset < 0:
+            offset = 0
+
         path = Path(path)
         collection = self.client[db][collection]
         filter = {}
         num_docs = collection.count_documents(filter=filter)
-        if not dry_run:
-            print(f"Number of documents in collection: {num_docs}.")
+        collection_amount = num_docs
+
+        if offset < num_docs:
+            num_docs = num_docs - offset
+        else:
+            num_docs = 0
+        if not dry_run and num_docs > 0:
+            print(f"Number of documents in collection: {collection_amount}.")
             if num_docs > BATCH_SIZE:
                 print(f"Downloading in mini-batches of {BATCH_SIZE} documents.")
             total = 0
             for i in range(0, num_docs, BATCH_SIZE):
-                documents = collection.find(filter=filter, skip=i, limit=BATCH_SIZE)
+                documents = collection.find(
+                    filter=filter, skip=i + offset, limit=BATCH_SIZE
+                )
                 save_jsonl(documents, path, collection_name=collection.name)
                 total += BATCH_SIZE
                 if total > num_docs:
