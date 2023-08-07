@@ -89,6 +89,7 @@ class BackupAndRestoreClient:
         path: str,
         dry_run: bool = False,
         offset: int = 0,
+        limit: int = -1,
     ):
         if offset < 0:
             offset = 0
@@ -99,19 +100,20 @@ class BackupAndRestoreClient:
         num_docs = collection.count_documents(filter=filter)
         collection_amount = num_docs
 
-        if offset < num_docs:
-            num_docs = num_docs - offset
-        else:
-            num_docs = 0
         if not dry_run and num_docs > 0:
             print(f"Number of documents in collection: {collection_amount}.")
             if num_docs > BATCH_SIZE:
                 print(f"Downloading in mini-batches of {BATCH_SIZE} documents.")
             total = 0
+            if limit != -1 and limit < num_docs:
+                num_docs = limit
+
             for i in range(0, num_docs, BATCH_SIZE):
-                documents = collection.find(
-                    filter=filter, skip=i + offset, limit=BATCH_SIZE
-                )
+                if total + BATCH_SIZE > num_docs:
+                    l = num_docs - total
+                else:
+                    l = BATCH_SIZE
+                documents = collection.find(filter=filter, skip=i + offset, limit=l)
                 save_jsonl(documents, path, collection_name=collection.name)
                 total += BATCH_SIZE
                 if total > num_docs:

@@ -15,6 +15,7 @@ def backup_collection(
     collection: Annotated[str, Option("-c", "--collection")],
     path: Annotated[str, Option("-p", "--path")],
     offset: Annotated[int, Option("-o", "--offset")] = 0,
+    limit: Annotated[int, Option("-l", "--limit")] = -1,
     dryrun: Annotated[bool, Option("-dryrun")] = False,
 ):
     try:
@@ -24,6 +25,7 @@ def backup_collection(
             path=path,
             dry_run=dryrun,
             offset=offset,
+            limit=limit,
         )
         if not dryrun:
             print(f"Backed up collection '{collection}' to '{path}'.")
