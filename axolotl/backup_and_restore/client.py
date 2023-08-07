@@ -79,7 +79,7 @@ def save_jsonl(objs: Iterable, path: Path, collection_name: str):
 
 
 class BackupAndRestoreClient:
-    def __init__(self, db_uir: str | None = None) -> None:
+    def __init__(self, db_uir: Optional[str] = None) -> None:
         if db_uir is None:
             db_uir = os.getenv("MONGODB_URI")
 
