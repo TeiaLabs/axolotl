@@ -79,8 +79,11 @@ def save_jsonl(objs: Iterable, path: Path, collection_name: str):
 
 
 class BackupAndRestoreClient:
-    def __init__(self) -> None:
-        self.client = MongoClient(os.getenv("MONGODB_URI"))
+    def __init__(self, db_uir: str | None = None) -> None:
+        if db_uir is None:
+            db_uir = os.getenv("MONGODB_URI")
+
+        self.client = MongoClient(db_uir)
 
     def backup_collection(
         self,
@@ -157,6 +160,12 @@ class BackupAndRestoreClient:
             print(f"Backing up database '{db}' to '{path}'.")
         else:
             print(f"Back up database '{db}' to '{path}'.")
+
+    def backup_milvus_collection():
+        pass
+
+    def restore_milvus_collection():
+        pass
 
     def restore_db(self):
         pass
