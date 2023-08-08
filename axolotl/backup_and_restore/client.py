@@ -2,11 +2,13 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Optional, TypeVar
+from typing import Iterable, Iterator, Optional, TypeVar
 
 import dotenv
+import numpy as np
 from bson.objectid import ObjectId
 from pymongo import MongoClient
+from pymilvus import connections, Collection
 
 dotenv.load_dotenv()
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 512))
@@ -21,6 +23,8 @@ class CustomJSONEncoder(json.JSONEncoder):
             return str(obj)
         elif isinstance(obj, bytes):
             return obj.decode("utf-8")
+        elif isinstance(obj, np.float32):
+            return obj.item()
         return super().default(obj)
 
 
@@ -78,6 +82,12 @@ def save_jsonl(objs: Iterable, path: Path, collection_name: str):
         f.write("\n")
 
 
+def dump_jsonl(rows: Iterator[dict], file: Path):
+    with open(file, "w") as f:
+        for obj in rows:
+            f.write(json.dumps(obj, cls=CustomJSONEncoder) + "\n")
+
+
 class BackupAndRestoreClient:
     def __init__(self, db_uir: Optional[str] = None) -> None:
         if db_uir is None:
@@ -93,13 +103,18 @@ class BackupAndRestoreClient:
         dry_run: bool = False,
         offset: int = 0,
         limit: int = -1,
+        filters: Optional[dict] = None,
     ):
         if offset < 0:
             offset = 0
 
         path = Path(path)
         collection = self.client[db][collection]
-        filter = {}
+        if filters is None:
+            filter = {}
+        else:
+            filter = filters
+
         num_docs = collection.count_documents(filter=filter)
         collection_amount = num_docs
 
@@ -161,11 +176,33 @@ class BackupAndRestoreClient:
         else:
             print(f"Back up database '{db}' to '{path}'.")
 
-    def backup_milvus_collection():
-        pass
-
-    def restore_milvus_collection():
-        pass
-
     def restore_db(self):
         pass
+
+    def backup_milvus_collection(
+        collection_name: str,
+        path: str,
+        limit: int = -1,
+        dry_run: bool = False,
+    ):
+        path = Path(path)
+        connections.connect(
+            alias="default",
+            uri=os.environ["MILVUS_HOST"],
+            password=os.getenv("MILVUS_PASSWORD", ""),
+            token=os.getenv("MILVUS_TOKEN", ""),
+            user=os.getenv("MILVUS_USER", ""),
+        )
+        collection = Collection(collection_name)
+        file = (dir / collection_name).with_suffix(".jsonl")
+        if file.exists():
+            print(f"File {dir / collection_name} already exists. Skipping.")
+            return
+        print(f"Backing up {collection_name} to {file}")
+        rows = collection.query(
+            "kb_name == 'sf_help'",
+            limit=limit,
+            output_fields=["kb_name", "pk", "vector"],
+        )
+        dump_jsonl(rows, file)
+        print(f"Downloaded {len(rows)} documents.")
