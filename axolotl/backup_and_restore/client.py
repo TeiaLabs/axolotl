@@ -194,15 +194,18 @@ class BackupAndRestoreClient:
             user=os.getenv("MILVUS_USER", ""),
         )
         collection = Collection(collection_name)
-        file = (dir / collection_name).with_suffix(".jsonl")
-        if file.exists():
-            print(f"File {dir / collection_name} already exists. Skipping.")
-            return
-        print(f"Backing up {collection_name} to {file}")
-        rows = collection.query(
-            "kb_name == 'sf_help'",
-            limit=limit,
-            output_fields=["kb_name", "pk", "vector"],
-        )
-        dump_jsonl(rows, file)
-        print(f"Downloaded {len(rows)} documents.")
+        if not dry_run:
+            file = (dir / collection_name).with_suffix(".jsonl")
+            if file.exists():
+                print(f"File {dir / collection_name} already exists. Skipping.")
+                return
+            print(f"Backing up {collection_name} to {file}")
+            rows = collection.query(
+                "kb_name == 'sf_help'",
+                limit=limit,
+                output_fields=["kb_name", "pk", "vector"],
+            )
+            dump_jsonl(rows, file)
+            print(f"Downloaded {len(rows)} documents.")
+        else:
+            print(f"Will back up {collection_name} to {dir / collection_name}.")
