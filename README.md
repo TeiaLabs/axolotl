@@ -25,6 +25,8 @@ dotenv.load_dotenv()
 
 client = BackupAndRestoreClient(db_uir=os.getenv("MONGO_DB_URI"))
 client.backup_collection(
-    db="jokes", collection="funny-jokes", path="./results.json"
+    db="jokes", collection="funny-jokes", path="./results"
 )
-```
+
+
+
