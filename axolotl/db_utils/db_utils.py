@@ -4,7 +4,7 @@ import typer
 from rich import print
 from typer import Option
 
-from axolotl import BackupAndRestoreClient
+
 from axolotl.db_utils.move_collection import move_mongo_collection
 
 app = typer.Typer()

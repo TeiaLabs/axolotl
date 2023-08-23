@@ -4,7 +4,7 @@ import typer
 from rich import print
 from typer import Option
 
-from axolotl import BackupAndRestoreClient
+from .client import BackupAndRestoreClient
 
 app = typer.Typer()
 
