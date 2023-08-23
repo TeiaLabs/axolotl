@@ -59,13 +59,3 @@ def restore_collection(
             print(f"Will Restore collection '{collection}' to '{path}'.")
     except Exception as e:
         print(e)
-
-
-@app.command()
-def backup_db():
-    pass
-
-
-@app.command()
-def restore_db():
-    pass

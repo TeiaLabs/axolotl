@@ -1,3 +1,6 @@
 rich
+typer
 python-dotenv
 pymongo
+pymilvus
+numpy

@@ -171,12 +171,9 @@ class BackupAndRestoreClient:
             print(f" Will Restore documents from '{path}'.")
 
     def backup_db(self, db: str, path: str, dry_run: bool = False):
-        if not dry_run:
-            print(f"Backing up database '{db}' to '{path}'.")
-        else:
-            print(f"Back up database '{db}' to '{path}'.")
+        pass
 
-    def restore_db(self):
+    def restore_db(self, db: str, path: str, dry_run: bool = False):
         pass
 
     def backup_milvus_collection(
