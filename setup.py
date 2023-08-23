@@ -43,7 +43,7 @@ requirements_extras = get_optional_requirements()
 
 setuptools.setup(
     name="axolotl",
-    version="0.1",
+    version=get_version(),
     author="TeiaLabs",
     author_email="contato@teialabs.com",
     description="Teia DB Utils",
