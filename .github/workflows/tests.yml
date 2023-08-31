@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "axolotl/**"
+      - "tests/**"
+      - "setup.py"
+      - "requirements*"
+      - ".github/workflows/test.yml"
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - "axolotl/**"
+      - "tests/**"
+      - "setup.py"
+      - "requirements*"
+      - ".github/workflows/test.yml"
+  workflow_dispatch:
+
+
+jobs:
+  autotester:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements-tests.txt
+            requirements.txt
+      - name: Setup pip and test dependencies.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+      - name: Install applicaiton.
+        run: |
+          pip install .
+      - name: Test application.
+        run: pytest ./tests
