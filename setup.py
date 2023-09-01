@@ -42,11 +42,11 @@ requirements = read_multiline_as_list("requirements.txt")
 requirements_extras = get_optional_requirements()
 
 setuptools.setup(
-    name="axolotl",
+    name="axolotl-dbu",
     version=get_version(),
     author="TeiaLabs",
     author_email="contato@teialabs.com",
-    description="Teia DB Utils",
+    description="Teia Labs DB Utils packege",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/TeiaLabs/axolotl",
