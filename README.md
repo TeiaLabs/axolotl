@@ -6,8 +6,15 @@
  # 
 
 # db utils
+
+## install
 ```bash
-pip install ./
+pip install axolotl-dbu
+```
+
+## dev install 
+```bash
+pip install -e ./
 cp example.env .env
 ```
 
