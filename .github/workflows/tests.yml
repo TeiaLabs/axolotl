@@ -19,6 +19,9 @@ on:
       - ".github/workflows/test.yml"
   workflow_dispatch:
 
+env:
+  MONGODB_URI: "mongodb://test_axolotl:citestpassword@localhost:27017"
+  
 
 jobs:
   autotester:
@@ -41,5 +44,13 @@ jobs:
       - name: Install applicaiton.
         run: |
           pip install .
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-username: test_axolotl
+          mongodb-password: citestpassword
       - name: Test application.
         run: pytest ./tests
+   
+      
+
