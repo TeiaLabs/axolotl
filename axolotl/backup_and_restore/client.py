@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 from datetime import datetime
@@ -7,8 +8,8 @@ from typing import Iterable, Iterator, Optional, TypeVar
 import dotenv
 import numpy as np
 from bson.objectid import ObjectId
+from pymilvus import Collection, connections
 from pymongo import MongoClient
-from pymilvus import connections, Collection
 
 dotenv.load_dotenv()
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 512))
@@ -138,10 +139,10 @@ class BackupAndRestoreClient:
                     total = num_docs
                 print(f"Downloaded {total}/{num_docs} documents.")
                 del documents
-            print(f"Saved them to '{path}'.")
+            print(f"Saved them to '{path}'.\n")
 
         else:
-            print(f"Number of documents in collection: {num_docs}.")
+            print(f"Number of documents in collection: {num_docs}.\n")
 
     def restore_collection(
         self,
@@ -171,10 +172,33 @@ class BackupAndRestoreClient:
             print(f" Will Restore documents from '{path}'.")
 
     def backup_db(self, db: str, path: str, dry_run: bool = False):
-        pass
+        if path.endswith("/"):
+            path = f"{path}{db}"
+        else:
+            path = f"{path}/{db}"
+        if not dry_run:
+            print(f"Backing up database '{db}' to '{path}'.\n")
+        else:
+            print(f"Will back up database '{db}' to '{path}'.\n")
+        for collection in self.client[db].list_collection_names():
+            print(f"Backing up collection '{collection}' to '{path}'.")
+            self.backup_collection(db, collection, path, dry_run=dry_run)
 
     def restore_db(self, db: str, path: str, dry_run: bool = False):
-        pass
+        if not path.endswith("/"):
+            path = f"{path}/"
+
+        collections = glob.glob(f"{path}/*.jsonl")
+        if not dry_run:
+            print(f"Restoring '{path}' to database '{db}'.\n")
+        else:
+            print(f"Will restore '{path}' to database '{db}'.\n")
+        for collection in collections:
+            collection_name = Path(collection).stem
+            print(f"Restoring collection '{collection}' to '{path}'.")
+            self.restore_collection(
+                db=db, collection=collection_name, path=collection, dry_run=dry_run
+            )
 
     def backup_milvus_collection(
         collection_name: str,

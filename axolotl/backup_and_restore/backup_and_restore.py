@@ -59,3 +59,35 @@ def restore_collection(
             print(f"Will Restore collection '{collection}' to '{path}'.")
     except Exception as e:
         print(e)
+
+
+@app.command()
+def backup_database(
+    db: Annotated[str, Option("-db", "--database")],
+    path: Annotated[str, Option("-p", "--path")],
+    dryrun: Annotated[bool, Option("-dryrun")] = False,
+):
+    try:
+        BackupAndRestoreClient().backup_db(db=db, path=path, dry_run=dryrun)
+        if not dryrun:
+            print(f"Backed up database '{db}' to '{path}'.")
+        else:
+            print(f"Will Backup database '{db}' to '{path}'.")
+    except Exception as e:
+        print(e)
+
+
+@app.command()
+def restore_database(
+    db: Annotated[str, Option("-db", "--database")],
+    path: Annotated[str, Option("-p", "--path")],
+    dryrun: Annotated[bool, Option("-dryrun")] = False,
+):
+    try:
+        BackupAndRestoreClient().restore_db(db=db, path=path, dry_run=dryrun)
+        if not dryrun:
+            print(f"Restored '{path}' to databese'{db}'.")
+        else:
+            print(f"Will Restore '{path}' to databese'{db}'.")
+    except Exception as e:
+        print(e)
