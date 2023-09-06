@@ -24,6 +24,14 @@ axolotl --help
 axolotl backup-and-restore --help
 axolotl db-utils --help
 ```
+# config file
+create a axolotl-clusters.yml file in the /.config
+directory in your home
+
+## cluster config file
+```yml
+local: mongodb://localhost:27017
+```
 
 
 # example
