@@ -1,7 +1,11 @@
 import os
-import dotenv
 from typing import Optional
+
+import dotenv
+import yaml
 from pymongo import MongoClient
+
+from ..backup_and_restore.client import BackupAndRestoreClient
 
 dotenv.load_dotenv()
 BATCH_SIZE = os.getenv("BATCH_SIZE", 512)
@@ -34,3 +38,27 @@ def move_mongo_collection(
             f"Will move collection '{collection_name}' from '{db}' to '{destination_db}'."
         )
         print(f"{collection.count_documents({})} documents in collection.")
+
+
+def move_mongo_db_cluster(
+    origin_cluster: str,
+    destination_cluster: str,
+    db: str,
+    path: str,
+    dry_run: bool = False,
+):
+    with open(os.path.expanduser("~/.config/axolotl-clusters.yml"), "r") as file_object:
+        data = yaml.load(file_object, Loader=yaml.SafeLoader)
+
+    try:
+        origin_uri = data[origin_cluster]
+        destination_uri = data[destination_cluster]
+    except KeyError:
+        print(f"Cluster not found in axolotl-clusters config file.")
+        return
+
+    origin_client = BackupAndRestoreClient(origin_uri)
+    destination_client = BackupAndRestoreClient(destination_uri)
+
+    origin_client.backup_db(db, path, dry_run=dry_run)
+    destination_client.restore_db(db, path, dry_run=dry_run)

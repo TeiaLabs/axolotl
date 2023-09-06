@@ -186,7 +186,9 @@ class BackupAndRestoreClient:
 
     def restore_db(self, db: str, path: str, dry_run: bool = False):
         if not path.endswith("/"):
-            path = f"{path}/"
+            path = f"{path}/{db}/"
+        else:
+            path = f"{path}{db}/"
 
         collections = glob.glob(f"{path}/*.jsonl")
         if not dry_run:
