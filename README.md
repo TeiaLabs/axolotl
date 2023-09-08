@@ -1,6 +1,7 @@
 # Axolotl 
 
 <img src="resources/images/axolotl.png" align="center" width="256">
+
  
 
  # 
@@ -31,7 +32,15 @@ directory in your home
 ## cluster config file
 ```yml
 local: mongodb://localhost:27017
+beta: mongodb+srv://<user>:<password>@some-cluster.mongodb.net/
 ```
+
+## move db form one cluster to another
+
+```bash
+axolotl db-utils move-db-cluster -oc beta -dc local -db jokes -p ./tmp
+```
+
 
 
 # example
@@ -46,6 +55,4 @@ client = BackupAndRestoreClient(db_uir=os.getenv("MONGO_DB_URI"))
 client.backup_collection(
     db="jokes", collection="funny-jokes", path="./results"
 )
-
-
-
+```
