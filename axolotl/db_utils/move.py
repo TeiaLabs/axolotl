@@ -40,6 +40,35 @@ def move_mongo_collection(
         print(f"{collection.count_documents({})} documents in collection.")
 
 
+def move_mongo_collection_cluster(
+    origin_cluster: str,
+    destination_cluster: str,
+    db: str,
+    destination_db: str,
+    collection_name: str,
+    path: str,
+    dry_run: bool = False,
+):
+    with open(os.path.expanduser("~/.config/axolotl-clusters.yml"), "r") as file_object:
+        data = yaml.load(file_object, Loader=yaml.SafeLoader)
+
+    try:
+        origin_uri = data[origin_cluster]
+        destination_uri = data[destination_cluster]
+    except KeyError:
+        print(f"Cluster not found in axolotl-clusters config file.")
+        return
+
+    origin_client = BackupAndRestoreClient(origin_uri)
+    destination_client = BackupAndRestoreClient(destination_uri)
+
+    origin_client.backup_collection(db=db, collection=collection_name, path=path)
+    path = os.path.join(path, f"{collection_name}.jsonl")
+    destination_client.restore_collection(
+        db=destination_db, collection=collection_name, path=path
+    )
+
+
 def move_mongo_db_cluster(
     origin_cluster: str,
     destination_cluster: str,
