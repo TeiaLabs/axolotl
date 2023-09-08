@@ -4,3 +4,4 @@ python-dotenv
 pymongo
 pymilvus
 numpy
+PyYAML
